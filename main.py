@@ -71,34 +71,54 @@ async def get_backtest_result(job_id: str):
 # ── Live Screener ─────────────────────────────────────────────────────────────
 
 class LiveParams(BaseModel):
-    universe:          str              = "sp100"
-    rsi_period:        int              = 14
-    # multi-select filters (list = one of these values matches)
-    sectors:           List[str]        = []
-    market_cap_ranges: List[str]        = []   # mega/large/mid/small/micro/nano
-    # RSI range
-    rsi_min:           Optional[float]  = None
-    rsi_max:           Optional[float]  = None
-    # Price range
-    price_min:         Optional[float]  = None
-    price_max:         Optional[float]  = None
-    # 1-day change %
-    change_min:        Optional[float]  = None
-    change_max:        Optional[float]  = None
-    # Technical filters
-    last_day_red:      bool             = False
-    min_consec_red:    int              = 0
-    vol_ratio_min:     Optional[float]  = None
-    sma20_pos:         Optional[str]    = None   # "above" / "below"
-    sma50_pos:         Optional[str]    = None
-    sma200_pos:        Optional[str]    = None
-    # Fundamental filters
-    beta_min:          Optional[float]  = None
-    beta_max:          Optional[float]  = None
-    pe_max:            Optional[float]  = None
-    pe_positive:       bool             = False
-    div_min:           Optional[float]  = None   # dividend yield %
-    from_52w_high_max: Optional[float]  = None   # e.g. -10 = within 10% of 52w high
+    universe:              str             = "sp100"
+    rsi_period:            int             = 14
+    # multi-select
+    sectors:               List[str]       = []
+    market_cap_ranges:     List[str]       = []
+    # RSI
+    rsi_min:               Optional[float] = None
+    rsi_max:               Optional[float] = None
+    # Price
+    price_min:             Optional[float] = None
+    price_max:             Optional[float] = None
+    # Change
+    change_min:            Optional[float] = None
+    change_max:            Optional[float] = None
+    # Technical
+    last_day_red:          bool            = False
+    min_consec_red:        int             = 0
+    vol_ratio_min:         Optional[float] = None
+    sma20_pos:             Optional[str]   = None
+    sma50_pos:             Optional[str]   = None
+    sma200_pos:            Optional[str]   = None
+    beta_min:              Optional[float] = None
+    beta_max:              Optional[float] = None
+    # Valuation
+    pe_max:                Optional[float] = None
+    pe_positive:           bool            = False
+    fpe_max:               Optional[float] = None
+    peg_max:               Optional[float] = None
+    ps_max:                Optional[float] = None
+    pb_max:                Optional[float] = None
+    ev_ebitda_max:         Optional[float] = None
+    # Dividend
+    div_min:               Optional[float] = None
+    payout_ratio_max:      Optional[float] = None
+    # Profitability (thresholds in %)
+    roa_min:               Optional[float] = None
+    roe_min:               Optional[float] = None
+    gross_margin_min:      Optional[float] = None
+    operating_margin_min:  Optional[float] = None
+    net_margin_min:        Optional[float] = None
+    # Debt / Liquidity
+    de_max:                Optional[float] = None
+    current_ratio_min:     Optional[float] = None
+    quick_ratio_min:       Optional[float] = None
+    # Analyst (1=Strong Buy … 5=Strong Sell)
+    analyst_max:           Optional[float] = None
+    # 52W
+    from_52w_high_max:     Optional[float] = None
 
 
 @app.post("/api/live-screener")
