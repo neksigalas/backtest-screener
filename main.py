@@ -1,5 +1,5 @@
 """
-Testing Screener — FastAPI backend.
+Backtest Screener — FastAPI backend.
 Serves the frontend and handles backtest API requests.
 """
 
@@ -15,7 +15,7 @@ from typing import List, Optional
 
 from screener_engine import run_backtest
 
-app  = FastAPI(title="Testing Screener")
+app  = FastAPI(title="Backtest Screener")
 jobs = {}   # job_id -> result dict
 
 
