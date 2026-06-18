@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Testing Screener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; }
+    .card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+    /* ── Finviz-style filter grid ── */
+    .fv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .fv-row  { display: contents; }
+    .fv-label {
+      padding: 5px 10px 5px 14px;
+      font-size: 0.78rem; font-weight: 500; color: #4b5563;
+      background: #f9fafb; border: 1px solid #e5e7eb;
+      display: flex; align-items: center;
+      border-bottom: none; border-right: none;
+    }
+    .fv-label:last-of-type { border-bottom: 1px solid #e5e7eb; }
+    .fv-cell {
+      padding: 4px 8px; border: 1px solid #e5e7eb;
+      background: #fff; display: flex; align-items: center;
+      border-bottom: none; border-right: none;
+    }
+    .fv-grid .fv-label:nth-last-child(-n+2),
+    .fv-grid .fv-cell:nth-last-child(-n+2) { border-bottom: 1px solid #e5e7eb; }
+    .fv-grid > *:nth-child(even) { border-right: 1px solid #e5e7eb; }
+    .fv-grid > *:nth-child(odd)  {  }
+    .fv-grid > *:first-child     { border-radius: 6px 0 0 0; }
+    .fv-grid > *:nth-child(2)    { border-radius: 0 6px 0 0; }
+    .fv-grid > *:nth-last-child(1){ border-radius: 0 0 6px 0; }
+    .fv-grid > *:nth-last-child(2){ border-radius: 0 0 0 6px; }
+
+    .fv-select {
+      width: 100%; border: none; background: transparent;
+      font-size: 0.80rem; color: #111827; padding: 2px 4px;
+      cursor: pointer; outline: none;
+    }
+    .fv-select:focus { background: #eff6ff; border-radius: 4px; }
+
+    .stat-card { text-align: center; padding: 16px 10px; border-radius: 10px; }
+    .stat-value { font-size: 1.75rem; font-weight: 700; }
+    .stat-label { font-size: 0.70rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; }
+    .badge-tp   { background: #d1fae5; color: #065f46; }
+    .badge-sl   { background: #fee2e2; color: #991b1b; }
+    .badge-mh   { background: #dbeafe; color: #1e40af; }
+    .badge-open { background: #fef3c7; color: #92400e; }
+
+    .tbl th { padding: 9px 12px; font-size: 0.71rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    .tbl td { padding: 8px 12px; font-size: 0.82rem; border-bottom: 1px solid #f3f4f6; color: #374151; }
+    .tbl tr:hover td { background: #f9fafb; }
+    .pos { color: #059669; font-weight: 600; }
+    .neg { color: #dc2626; font-weight: 600; }
+
+    #runBtn { transition: all .15s; }
+    #runBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,.4); }
+    #runBtn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .progress-bar { height: 6px; background: #e5e7eb; border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg,#6366f1,#8b5cf6); border-radius: 99px; transition: width .4s; }
+
+    .tab-btn { padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; color: #6b7280; }
+    .tab-btn.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+    .tab-btn:not(.active):hover { background: #f3f4f6; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+<!-- Header -->
+<header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 shadow-sm">
+  <div class="flex items-center gap-2">
+    <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    </div>
+    <span class="text-base font-bold text-gray-900">Testing Screener</span>
+  </div>
+  <span class="text-xs bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">BETA</span>
+  <span class="ml-auto text-xs text-gray-400">Backtest any screener on historical US stock data</span>
+</header>
+
+<div class="max-w-[1400px] mx-auto px-4 py-5 grid grid-cols-[320px_1fr] gap-5">
+
+  <!-- ── LEFT PANEL ─────────────────────────────────────────────────────── -->
+  <div class="space-y-3">
+
+    <!-- Screener Filters (Finviz-style) -->
+    <div class="card overflow-hidden">
+      <div class="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+        <span class="text-sm font-bold text-gray-800">Screener Filters</span>
+      </div>
+
+      <div class="fv-grid px-0">
+        <!-- Exchange -->
+        <div class="fv-label">Exchange</div>
+        <div class="fv-cell"><select class="fv-select" id="exchange" disabled>
+          <option>US (NYSE + NASDAQ)</option>
+        </select></div>
+
+        <!-- Sector -->
+        <div class="fv-label">Sector</div>
+        <div class="fv-cell"><select class="fv-select" id="sector">
+          <option value="">Any</option>
+          <option value="Energy">Energy</option>
+          <option value="Technology">Technology</option>
+          <option value="Healthcare">Healthcare</option>
+          <option value="Financial Services">Financial Services</option>
+          <option value="Industrials">Industrials</option>
+          <option value="Basic Materials">Basic Materials</option>
+          <option value="Consumer Cyclical">Consumer Cyclical</option>
+          <option value="Consumer Defensive">Consumer Defensive</option>
+          <option value="Real Estate">Real Estate</option>
+          <option value="Utilities">Utilities</option>
+          <option value="Communication Services">Communication Services</option>
+        </select></div>
+
+        <!-- Market Cap -->
+        <div class="fv-label">Market Cap</div>
+        <div class="fv-cell"><select class="fv-select" id="marketCap">
+          <option value="any">Any</option>
+          <option value="mid">Mid+ (≥ $2B)</option>
+          <option value="large">Large (≥ $10B)</option>
+        </select></div>
+
+        <!-- RSI (14) -->
+        <div class="fv-label">RSI (14)</div>
+        <div class="fv-cell"><select class="fv-select" id="rsiThreshold">
+          <option value="40">Oversold (40)</option>
+          <option value="35">Oversold (35)</option>
+          <option value="30" selected>Oversold (30)</option>
+          <option value="28">Oversold (28) ★</option>
+          <option value="25">Oversold (25)</option>
+          <option value="20">Oversold (20)</option>
+          <option value="15">Oversold (15)</option>
+          <option value="10">Oversold (10)</option>
+        </select></div>
+
+        <!-- RSI Period -->
+        <div class="fv-label">RSI Period</div>
+        <div class="fv-cell"><select class="fv-select" id="rsiPeriod">
+          <option value="14" selected>14 — Standard</option>
+          <option value="5">5 — Short</option>
+          <option value="2">2 — Larry Connors</option>
+        </select></div>
+
+        <!-- Last Day -->
+        <div class="fv-label">Last Day</div>
+        <div class="fv-cell"><select class="fv-select" id="lastDayRed">
+          <option value="false">Any direction</option>
+          <option value="true">Red (down) only</option>
+        </select></div>
+
+        <!-- Consec. Red Days -->
+        <div class="fv-label">Consec. Red Days</div>
+        <div class="fv-cell"><select class="fv-select" id="minConsecRed">
+          <option value="0">Any</option>
+          <option value="1">≥ 1 day ★</option>
+          <option value="2">≥ 2 days</option>
+          <option value="3">≥ 3 days</option>
+        </select></div>
+
+        <!-- Market Regime -->
+        <div class="fv-label">Market Regime</div>
+        <div class="fv-cell"><select class="fv-select" id="marketRegime">
+          <option value="false">Any</option>
+          <option value="true">Bull only (SPY > SMA200)</option>
+        </select></div>
+
+        <!-- Avoid Month -->
+        <div class="fv-label">Avoid Month</div>
+        <div class="fv-cell"><select class="fv-select" id="avoidMonth">
+          <option value="0">None</option>
+          <option value="1">January</option>
+          <option value="2" selected>February ★</option>
+          <option value="3">March</option>
+          <option value="4">April</option>
+          <option value="9">September</option>
+          <option value="10">October</option>
+        </select></div>
+
+        <!-- Country -->
+        <div class="fv-label">Country</div>
+        <div class="fv-cell"><select class="fv-select" disabled>
+          <option>USA</option>
+        </select></div>
+      </div>
+    </div>
+
+    <!-- Backtest Settings -->
+    <div class="card overflow-hidden">
+      <div class="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="text-sm font-bold text-gray-800">Backtest Settings</span>
+      </div>
+
+      <div class="fv-grid">
+        <div class="fv-label">Take Profit %</div>
+        <div class="fv-cell"><input type="number" id="tp" value="8" min="0.5" max="50" step="0.5" class="fv-select"></div>
+
+        <div class="fv-label">Stop Loss %</div>
+        <div class="fv-cell"><input type="number" id="sl" value="5" min="0.5" max="50" step="0.5" class="fv-select"></div>
+
+        <div class="fv-label">Max Hold Days</div>
+        <div class="fv-cell"><input type="number" id="maxHold" value="14" min="1" max="90" class="fv-select"></div>
+
+        <div class="fv-label">Investment / Trade</div>
+        <div class="fv-cell">
+          <span class="text-gray-400 text-sm mr-1">$</span>
+          <input type="number" id="investment" value="100" min="10" max="10000" step="10" class="fv-select">
+        </div>
+
+        <div class="fv-label">Max Positions</div>
+        <div class="fv-cell"><input type="number" id="maxPositions" value="20" min="1" max="100" class="fv-select"></div>
+      </div>
+
+      <!-- Lookback & Universe -->
+      <div class="px-4 py-3 space-y-3 border-t border-gray-100">
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Lookback Period</div>
+          <div class="flex gap-1.5">
+            <button onclick="setLookback(3)"  id="lb3"  class="lb-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:border-indigo-400">3 months</button>
+            <button onclick="setLookback(6)"  id="lb6"  class="lb-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border-2 border-indigo-500 bg-indigo-50 text-indigo-700">6 months</button>
+            <button onclick="setLookback(12)" id="lb12" class="lb-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:border-indigo-400">1 year</button>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Universe</div>
+          <div class="flex gap-1.5">
+            <button onclick="setUniverse('sp100')"     id="uSp100"     class="univ-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border-2 border-indigo-500 bg-indigo-50 text-indigo-700">S&amp;P 100</button>
+            <button onclick="setUniverse('sp500')"     id="uSp500"     class="univ-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:border-indigo-400">S&amp;P 500</button>
+            <button onclick="setUniverse('nasdaq100')" id="uNasdaq100" class="univ-btn flex-1 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:border-indigo-400">NASDAQ 100</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Run button -->
+      <div class="px-4 pb-4">
+        <button id="runBtn" onclick="runBacktest()"
+          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow">
+          ▶&nbsp; Run Backtest
+        </button>
+        <div id="progressWrap" class="mt-3 hidden">
+          <div class="flex justify-between text-xs text-gray-500 mb-1">
+            <span id="progressMsg">Loading...</span>
+            <span id="progressPct">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ────────────────────────────────────────────────────── -->
+  <div class="space-y-4">
+
+    <!-- Empty state -->
+    <div id="emptyState" class="card p-16 flex flex-col items-center justify-center text-center">
+      <div class="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      </div>
+      <p class="text-gray-600 font-semibold text-base">Set your filters and click <span class="text-indigo-600">▶ Run Backtest</span></p>
+      <p class="text-gray-400 text-sm mt-2 max-w-sm">The simulator will run your screener every trading day over the selected period and show what the results would have been.</p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsWrap" class="hidden space-y-4">
+
+      <!-- Summary cards -->
+      <div class="grid grid-cols-4 gap-3">
+        <div class="stat-card card bg-gradient-to-br from-indigo-50 to-white">
+          <div class="stat-value text-indigo-700" id="statTrades">—</div>
+          <div class="stat-label">Trades</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-value" id="statWR">—</div>
+          <div class="stat-label">Win Rate</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-value" id="statEV">—</div>
+          <div class="stat-label">EV / Trade</div>
+        </div>
+        <div class="stat-card card">
+          <div class="stat-value" id="statPL">—</div>
+          <div class="stat-label">Total P&amp;L</div>
+        </div>
+      </div>
+
+      <!-- Secondary stats + export -->
+      <div class="card p-4 flex flex-wrap items-center gap-6 text-sm">
+        <div><span class="text-gray-500">Avg Win:</span> <span id="statAvgWin" class="pos font-semibold ml-1">—</span></div>
+        <div><span class="text-gray-500">Avg Loss:</span> <span id="statAvgLoss" class="neg font-semibold ml-1">—</span></div>
+        <div><span class="text-gray-500">SL Rate:</span> <span id="statSLRate" class="font-semibold ml-1 text-gray-700">—</span></div>
+        <div class="flex gap-2 text-xs">
+          <span class="badge badge-tp" id="statTP">TP: —</span>
+          <span class="badge badge-sl" id="statSL">SL: —</span>
+          <span class="badge badge-mh" id="statMH">MaxHold: —</span>
+        </div>
+        <button onclick="exportCSV()" class="ml-auto flex items-center gap-1.5 text-xs text-indigo-600 border border-indigo-300 px-4 py-2 rounded-lg hover:bg-indigo-50 font-semibold">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <!-- P&L Chart -->
+      <div class="card p-4">
+        <h3 class="text-sm font-bold text-gray-700 mb-3">Cumulative P&amp;L</h3>
+        <canvas id="plChart" height="75"></canvas>
+      </div>
+
+      <!-- Sector breakdown -->
+      <div class="card p-4">
+        <h3 class="text-sm font-bold text-gray-700 mb-3">Performance by Sector</h3>
+        <table class="tbl w-full">
+          <thead><tr>
+            <th>Sector</th><th>Trades</th><th>Win Rate</th><th>EV / Trade</th>
+          </tr></thead>
+          <tbody id="sectorBreakdown"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let lookback  = 6;
+let universe  = 'sp100';
+let allTrades = [];
+let plChart   = null;
+
+function setLookback(n) {
+  lookback = n;
+  document.querySelectorAll('.lb-btn').forEach(b => {
+    b.className = b.className.replace('border-2 border-indigo-500 bg-indigo-50 text-indigo-700', 'border border-gray-300 text-gray-600');
+  });
+  const btn = document.getElementById('lb' + n);
+  btn.className = btn.className.replace('border border-gray-300 text-gray-600', 'border-2 border-indigo-500 bg-indigo-50 text-indigo-700');
+}
+
+function setUniverse(u) {
+  universe = u;
+  document.querySelectorAll('.univ-btn').forEach(b => {
+    b.className = b.className.replace('border-2 border-indigo-500 bg-indigo-50 text-indigo-700', 'border border-gray-300 text-gray-600');
+  });
+  const ids = { sp100: 'uSp100', sp500: 'uSp500', nasdaq100: 'uNasdaq100' };
+  const btn = document.getElementById(ids[u]);
+  btn.className = btn.className.replace('border border-gray-300 text-gray-600', 'border-2 border-indigo-500 bg-indigo-50 text-indigo-700');
+}
+
+async function runBacktest() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('resultsWrap').classList.add('hidden');
+  document.getElementById('progressWrap').classList.remove('hidden');
+
+  const sectorVal = document.getElementById('sector').value;
+  const avoidM    = parseInt(document.getElementById('avoidMonth').value) || 0;
+
+  const params = {
+    rsi_threshold:   parseInt(document.getElementById('rsiThreshold').value),
+    rsi_period:      parseInt(document.getElementById('rsiPeriod').value),
+    sectors:         sectorVal ? [sectorVal] : [],
+    min_market_cap:  document.getElementById('marketCap').value,
+    last_day_red:    document.getElementById('lastDayRed').value === 'true',
+    min_consec_red:  parseInt(document.getElementById('minConsecRed').value),
+    market_regime:   document.getElementById('marketRegime').value === 'true',
+    avoid_months:    avoidM ? [avoidM] : [],
+    tp:              parseFloat(document.getElementById('tp').value),
+    sl:              parseFloat(document.getElementById('sl').value),
+    max_hold:        parseInt(document.getElementById('maxHold').value),
+    investment:      parseFloat(document.getElementById('investment').value),
+    max_positions:   parseInt(document.getElementById('maxPositions').value),
+    lookback_months: lookback,
+    universe:        universe,
+  };
+
+  try {
+    const res = await fetch('/api/backtest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    const { job_id } = await res.json();
+    pollJob(job_id);
+  } catch (e) {
+    alert('Error starting backtest: ' + e);
+    resetBtn();
+  }
+}
+
+function pollJob(job_id) {
+  const iv = setInterval(async () => {
+    try {
+      const data = await (await fetch('/api/backtest/' + job_id)).json();
+      const pct  = data.progress || 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent  = pct + '%';
+      document.getElementById('progressMsg').textContent  = data.message || 'Running...';
+      if (data.status === 'done') { clearInterval(iv); showResults(data); resetBtn(); }
+      else if (data.status === 'error') { clearInterval(iv); alert('Error: ' + data.message); resetBtn(); }
+    } catch (e) { clearInterval(iv); alert('Polling error: ' + e); resetBtn(); }
+  }, 1500);
+}
+
+function resetBtn() {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.innerHTML = '&#9654;&nbsp; Run Backtest';
+  document.getElementById('progressWrap').classList.add('hidden');
+}
+
+function showResults(data) {
+  const s = data.summary;
+  allTrades = data.trades || [];
+  document.getElementById('resultsWrap').classList.remove('hidden');
+
+  document.getElementById('statTrades').textContent = s.total_trades.toLocaleString();
+
+  const wrEl = document.getElementById('statWR');
+  wrEl.textContent = s.win_rate + '%';
+  wrEl.className   = 'stat-value ' + (s.win_rate >= 50 ? 'text-green-600' : 'text-red-600');
+
+  const evEl = document.getElementById('statEV');
+  evEl.textContent = (s.ev >= 0 ? '+' : '') + s.ev + '%';
+  evEl.className   = 'stat-value ' + (s.ev >= 0 ? 'text-green-600' : 'text-red-600');
+
+  const plEl = document.getElementById('statPL');
+  plEl.textContent = (s.total_pl >= 0 ? '+' : '') + '$' + s.total_pl.toLocaleString();
+  plEl.className   = 'stat-value ' + (s.total_pl >= 0 ? 'text-green-600' : 'text-red-600');
+
+  document.getElementById('statAvgWin').textContent  = '+' + s.avg_win + '%';
+  document.getElementById('statAvgLoss').textContent = s.avg_loss + '%';
+  document.getElementById('statSLRate').textContent  = s.sl_rate + '%';
+  document.getElementById('statTP').textContent = 'TP: ' + s.tp_count;
+  document.getElementById('statSL').textContent = 'SL: ' + s.sl_count;
+  document.getElementById('statMH').textContent = 'MaxHold: ' + s.mh_count;
+
+  drawChart(s.equity_curve);
+  drawSectorTable(s.sector_breakdown);
+}
+
+function drawChart(equity) {
+  if (plChart) plChart.destroy();
+  const last  = equity.length ? equity[equity.length - 1].cum_pl : 0;
+  const color = last >= 0 ? '#059669' : '#dc2626';
+  const fill  = last >= 0 ? 'rgba(5,150,105,.08)' : 'rgba(220,38,38,.08)';
+  plChart = new Chart(document.getElementById('plChart'), {
+    type: 'line',
+    data: {
+      labels: equity.map(e => e.date),
+      datasets: [{ data: equity.map(e => e.cum_pl), borderColor: color, backgroundColor: fill,
+        fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, font: { size: 10 } } },
+        y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 },
+          callback: v => (v >= 0 ? '+' : '') + '$' + v.toLocaleString() } }
+      },
+      interaction: { intersect: false, mode: 'index' },
+    }
+  });
+}
+
+function drawSectorTable(sectors) {
+  document.getElementById('sectorBreakdown').innerHTML = sectors.map(s => `
+    <tr>
+      <td class="font-medium">${s.sector}</td>
+      <td>${s.trades}</td>
+      <td class="${s.wr >= 50 ? 'pos' : 'neg'}">${s.wr}%</td>
+      <td class="${s.ev >= 0 ? 'pos' : 'neg'}">${s.ev >= 0 ? '+' : ''}${s.ev}%</td>
+    </tr>`).join('');
+}
+
+function exportCSV() {
+  if (!allTrades.length) return alert('No trades to export. Run a backtest first.');
+  const keys = Object.keys(allTrades[0]);
+  const rows = [keys.join(','), ...allTrades.map(t => keys.map(k => t[k]).join(','))];
+  const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'backtest_trades.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
