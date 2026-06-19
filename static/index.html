@@ -582,6 +582,135 @@
     </div>
   </div>
 
+  <!-- Mobile More Filters toggle -->
+  <button onclick="toggleMobileMore()" id="mMoreBtn"
+    class="w-full py-2.5 text-sm font-semibold rounded-xl border border-indigo-500/30 text-indigo-400"
+    style="background:rgba(99,102,241,.06);">All Filters ▾</button>
+
+  <div id="mMoreFilters" class="hidden space-y-3">
+
+    <div style="height:1px;background:#1e2132;"></div>
+    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Valuation</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><div class="mob-label">P/E Ratio</div>
+        <select class="mob-select" id="mPe">
+          <option value="">Any</option><option value="pos">Positive</option>
+          <option value="10">≤ 10</option><option value="15">≤ 15</option>
+          <option value="20">≤ 20</option><option value="25">≤ 25</option><option value="30">≤ 30</option>
+        </select></div>
+      <div><div class="mob-label">Forward P/E</div>
+        <select class="mob-select" id="mFpe">
+          <option value="">Any</option><option value="10">≤ 10</option>
+          <option value="15">≤ 15</option><option value="20">≤ 20</option><option value="25">≤ 25</option>
+        </select></div>
+      <div><div class="mob-label">PEG Ratio</div>
+        <select class="mob-select" id="mPeg">
+          <option value="">Any</option><option value="1">≤ 1</option>
+          <option value="1.5">≤ 1.5</option><option value="2">≤ 2</option>
+        </select></div>
+      <div><div class="mob-label">P/S Ratio</div>
+        <select class="mob-select" id="mPs">
+          <option value="">Any</option><option value="1">≤ 1</option>
+          <option value="2">≤ 2</option><option value="5">≤ 5</option><option value="10">≤ 10</option>
+        </select></div>
+      <div><div class="mob-label">P/B Ratio</div>
+        <select class="mob-select" id="mPb">
+          <option value="">Any</option><option value="1">≤ 1</option>
+          <option value="2">≤ 2</option><option value="3">≤ 3</option><option value="5">≤ 5</option>
+        </select></div>
+      <div><div class="mob-label">EV/EBITDA</div>
+        <select class="mob-select" id="mEv">
+          <option value="">Any</option><option value="5">≤ 5</option>
+          <option value="10">≤ 10</option><option value="15">≤ 15</option><option value="25">≤ 25</option>
+        </select></div>
+    </div>
+
+    <div style="height:1px;background:#1e2132;"></div>
+    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Profitability</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><div class="mob-label">ROE</div>
+        <select class="mob-select" id="mRoe">
+          <option value="">Any</option><option value="0">Positive</option>
+          <option value="10">≥ 10%</option><option value="15">≥ 15%</option><option value="20">≥ 20%</option>
+        </select></div>
+      <div><div class="mob-label">ROA</div>
+        <select class="mob-select" id="mRoa">
+          <option value="">Any</option><option value="0">Positive</option>
+          <option value="5">≥ 5%</option><option value="10">≥ 10%</option>
+        </select></div>
+      <div><div class="mob-label">Gross Margin</div>
+        <select class="mob-select" id="mGm">
+          <option value="">Any</option><option value="0">Positive</option>
+          <option value="20">≥ 20%</option><option value="40">≥ 40%</option><option value="60">≥ 60%</option>
+        </select></div>
+      <div><div class="mob-label">Net Margin</div>
+        <select class="mob-select" id="mNm">
+          <option value="">Any</option><option value="0">Positive</option>
+          <option value="5">≥ 5%</option><option value="10">≥ 10%</option><option value="20">≥ 20%</option>
+        </select></div>
+      <div><div class="mob-label">Dividend Yield</div>
+        <select class="mob-select" id="mDiv">
+          <option value="">Any</option><option value="0.01">Positive</option>
+          <option value="1">≥ 1%</option><option value="2">≥ 2%</option><option value="3">≥ 3%</option>
+        </select></div>
+      <div><div class="mob-label">Analyst Rec.</div>
+        <select class="mob-select" id="mAr">
+          <option value="">Any</option><option value="1.5">Strong Buy</option>
+          <option value="2">Buy</option><option value="3">Hold</option>
+        </select></div>
+    </div>
+
+    <div style="height:1px;background:#1e2132;"></div>
+    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">Technical</div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><div class="mob-label">Debt/Equity</div>
+        <select class="mob-select" id="mDe">
+          <option value="">Any</option><option value="50">≤ 0.5</option>
+          <option value="100">≤ 1</option><option value="200">≤ 2</option>
+        </select></div>
+      <div><div class="mob-label">Beta</div>
+        <select class="mob-select" id="mBeta">
+          <option value="">Any</option><option value="low">Low (&lt;0.8)</option>
+          <option value="mid">Mid (0.8–1.2)</option><option value="high">High (&gt;1.2)</option>
+        </select></div>
+      <div><div class="mob-label">vs SMA 50</div>
+        <select class="mob-select" id="mSma50">
+          <option value="">Any</option><option value="above">Above SMA50</option><option value="below">Below SMA50</option>
+        </select></div>
+      <div><div class="mob-label">vs SMA 200</div>
+        <select class="mob-select" id="mSma200">
+          <option value="">Any</option><option value="above">Above SMA200</option><option value="below">Below SMA200</option>
+        </select></div>
+      <div><div class="mob-label">Consec. Red</div>
+        <select class="mob-select" id="mConsecRed">
+          <option value="0">Any</option><option value="1">≥ 1 day ★</option><option value="2">≥ 2 days</option>
+        </select></div>
+      <div><div class="mob-label">Last Day Red</div>
+        <select class="mob-select" id="mLastDay">
+          <option value="false">Any</option><option value="true">Must be red ★</option>
+        </select></div>
+      <div><div class="mob-label">From 52W High</div>
+        <select class="mob-select" id="mFrom52w">
+          <option value="">Any</option><option value="-10">Within 10%</option>
+          <option value="-20">Within 20%</option><option value="-30">Within 30%</option>
+        </select></div>
+      <div><div class="mob-label">Mkt Cap</div>
+        <select class="mob-select" id="mMc">
+          <option value="">Any</option><option value="mega">Mega (&gt;$200B)</option>
+          <option value="large">Large ($10B–$200B)</option><option value="mid">Mid ($2B–$10B)</option>
+          <option value="small">Small ($300M–$2B)</option>
+        </select></div>
+    </div>
+
+    <div><div class="mob-label">Price Range $</div>
+      <div class="grid grid-cols-2 gap-3">
+        <input type="number" id="mPriceMin" class="mob-input" placeholder="Min price">
+        <input type="number" id="mPriceMax" class="mob-input" placeholder="Max price">
+      </div>
+    </div>
+
+  </div><!-- /mMoreFilters -->
+
   <button class="mob-scan-btn" id="mScanBtn" onclick="mScan()"><span id="mScanTxt">▶ Scan Now</span></button>
 
   <div id="mProgressWrap" class="hidden">
@@ -1102,6 +1231,17 @@ function renderMobileCards() {
 /* ════════════════════════════════════════
    MOBILE SCAN
 ════════════════════════════════════════ */
+function toggleMobileMore() {
+  const panel = document.getElementById('mMoreFilters');
+  const btn   = document.getElementById('mMoreBtn');
+  if (!panel) return;
+  const open = !panel.classList.contains('hidden');
+  panel.classList.toggle('hidden', open);
+  if (btn) btn.textContent = open ? 'All Filters ▾' : 'Basic Filters ▴';
+}
+
+function mgv(id) { return document.getElementById(id)?.value || ''; }
+
 async function mScan() {
   const btn = document.getElementById('mScanBtn');
   if (btn) btn.disabled = true;
@@ -1114,10 +1254,12 @@ async function mScan() {
   const pw = document.getElementById('mProgressWrap');
   if (pw) pw.classList.remove('hidden');
 
-  const mSector = document.getElementById('mSector')?.value || '';
-  const mRsi    = document.getElementById('mRsi')?.value    || '';
-  const mChange = document.getElementById('mChange')?.value || '';
-  const mVol    = document.getElementById('mVolume')?.value || '';
+  const mSector = mgv('mSector');
+  const mRsi    = mgv('mRsi');
+  const mChange = mgv('mChange');
+  const mVol    = mgv('mVolume');
+  const mBetaF  = mgv('mBeta');
+  const mPeF    = mgv('mPe');
 
   let changeMin=null, changeMax=null;
   if (mChange==='up5')    changeMin=5;
@@ -1126,13 +1268,45 @@ async function mScan() {
   if (mChange==='down5')  changeMax=-5;
   if (mChange==='down10') changeMax=-10;
 
+  let betaMin=null, betaMax=null;
+  if (mBetaF==='low')  betaMax=0.8;
+  if (mBetaF==='mid')  { betaMin=0.8; betaMax=1.2; }
+  if (mBetaF==='high') betaMin=1.2;
+
+  let peMax=null, pePositive=false;
+  if (mPeF==='pos') pePositive=true;
+  else if (mPeF)    { peMax=parseFloat(mPeF); pePositive=true; }
+
+  const mMcVal = mgv('mMc');
+
   const params = {
     universe, rsi_period: 14,
     sectors: mSector ? [mSector] : [],
-    market_cap_ranges: [],
-    rsi_max: mRsi ? parseFloat(mRsi) : null,
-    vol_ratio_min: mVol ? parseFloat(mVol) : null,
+    market_cap_ranges: mMcVal ? [mMcVal] : [],
+    rsi_max:              mRsi  ? parseFloat(mRsi)  : null,
+    vol_ratio_min:        mVol  ? parseFloat(mVol)  : null,
     change_min: changeMin, change_max: changeMax,
+    price_min:            parseFloat(mgv('mPriceMin')) || null,
+    price_max:            parseFloat(mgv('mPriceMax')) || null,
+    last_day_red:         mgv('mLastDay') === 'true',
+    min_consec_red:       parseInt(mgv('mConsecRed'))  || 0,
+    sma50_pos:            mgv('mSma50')  || null,
+    sma200_pos:           mgv('mSma200') || null,
+    beta_min: betaMin, beta_max: betaMax,
+    pe_max: peMax, pe_positive: pePositive,
+    fpe_max:              mgv('mFpe') ? parseFloat(mgv('mFpe')) : null,
+    peg_max:              mgv('mPeg') ? parseFloat(mgv('mPeg')) : null,
+    ps_max:               mgv('mPs')  ? parseFloat(mgv('mPs'))  : null,
+    pb_max:               mgv('mPb')  ? parseFloat(mgv('mPb'))  : null,
+    ev_ebitda_max:        mgv('mEv')  ? parseFloat(mgv('mEv'))  : null,
+    div_min:              mgv('mDiv') ? parseFloat(mgv('mDiv')) : null,
+    roa_min:              mgv('mRoa') ? parseFloat(mgv('mRoa')) : null,
+    roe_min:              mgv('mRoe') ? parseFloat(mgv('mRoe')) : null,
+    gross_margin_min:     mgv('mGm')  ? parseFloat(mgv('mGm'))  : null,
+    net_margin_min:       mgv('mNm')  ? parseFloat(mgv('mNm'))  : null,
+    de_max:               mgv('mDe')  ? parseFloat(mgv('mDe'))  : null,
+    analyst_max:          mgv('mAr')  ? parseFloat(mgv('mAr'))  : null,
+    from_52w_high_max:    mgv('mFrom52w') ? parseFloat(mgv('mFrom52w')) : null,
   };
 
   try {
