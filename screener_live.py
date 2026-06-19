@@ -6,6 +6,7 @@ Fundamental data: per-stock yfinance.info (cached daily).
 
 import json
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -61,6 +62,39 @@ def _cap_tier(mc):
 
 # ── Fundamental cache (refreshed once per day) ────────────────────────────────
 
+def _fetch_one_ticker(ticker: str) -> tuple:
+    """Fetch fundamental data for one ticker (runs in thread pool)."""
+    try:
+        info = yf.Ticker(ticker).info
+        return ticker, {
+            "sector":           info.get("sector", ""),
+            "industry":         info.get("industry", ""),
+            "market_cap":       info.get("marketCap"),
+            "pe":               info.get("trailingPE"),
+            "forward_pe":       info.get("forwardPE"),
+            "peg":              info.get("pegRatio"),
+            "ps_ratio":         info.get("priceToSalesTrailing12Months"),
+            "price_to_book":    info.get("priceToBook"),
+            "ev_ebitda":        info.get("enterpriseToEbitda"),
+            "dividend_yield":   info.get("dividendYield"),
+            "payout_ratio":     info.get("payoutRatio"),
+            "roa":              info.get("returnOnAssets"),
+            "roe":              info.get("returnOnEquity"),
+            "gross_margin":     info.get("grossMargins"),
+            "operating_margin": info.get("operatingMargins"),
+            "net_margin":       info.get("profitMargins"),
+            "debt_to_equity":   info.get("debtToEquity"),
+            "current_ratio":    info.get("currentRatio"),
+            "quick_ratio":      info.get("quickRatio"),
+            "beta":             info.get("beta"),
+            "analyst_rating":   info.get("recommendationMean"),
+            "52w_high":         info.get("fiftyTwoWeekHigh"),
+            "52w_low":          info.get("fiftyTwoWeekLow"),
+        }
+    except Exception:
+        return ticker, {}
+
+
 def _get_fundamentals(tickers: list, job_id: str, jobs: dict) -> dict:
     today      = date.today().isoformat()
     cache_file = CACHE_DIR / f"fund_{today}.json"
@@ -81,45 +115,17 @@ def _get_fundamentals(tickers: list, job_id: str, jobs: dict) -> dict:
     missing = [t for t in tickers if t not in cached]
 
     if missing:
-        for i, ticker in enumerate(missing):
-            pct = 55 + int((i / len(missing)) * 25)
-            jobs[job_id]["progress"] = pct
-            jobs[job_id]["message"]  = f"Fetching fundamentals ({i+1}/{len(missing)})…"
-            try:
-                info = yf.Ticker(ticker).info
-                cached[ticker] = {
-                    "sector":           info.get("sector", ""),
-                    "industry":         info.get("industry", ""),
-                    "market_cap":       info.get("marketCap"),
-                    # valuation
-                    "pe":               info.get("trailingPE"),
-                    "forward_pe":       info.get("forwardPE"),
-                    "peg":              info.get("pegRatio"),
-                    "ps_ratio":         info.get("priceToSalesTrailing12Months"),
-                    "price_to_book":    info.get("priceToBook"),
-                    "ev_ebitda":        info.get("enterpriseToEbitda"),
-                    # dividend
-                    "dividend_yield":   info.get("dividendYield"),
-                    "payout_ratio":     info.get("payoutRatio"),
-                    # profitability (raw 0–1 fractions)
-                    "roa":              info.get("returnOnAssets"),
-                    "roe":              info.get("returnOnEquity"),
-                    "gross_margin":     info.get("grossMargins"),
-                    "operating_margin": info.get("operatingMargins"),
-                    "net_margin":       info.get("profitMargins"),
-                    # debt / liquidity
-                    "debt_to_equity":   info.get("debtToEquity"),
-                    "current_ratio":    info.get("currentRatio"),
-                    "quick_ratio":      info.get("quickRatio"),
-                    # other
-                    "beta":             info.get("beta"),
-                    "analyst_rating":   info.get("recommendationMean"),
-                    "52w_high":         info.get("fiftyTwoWeekHigh"),
-                    "52w_low":          info.get("fiftyTwoWeekLow"),
-                }
-            except Exception:
-                cached[ticker] = {}
-            time.sleep(0.07)
+        done = 0
+        # Parallel fetch: ~8x faster than sequential for first daily scan
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(_fetch_one_ticker, t): t for t in missing}
+            for future in as_completed(futures):
+                ticker, data = future.result()
+                cached[ticker] = data
+                done += 1
+                pct = 55 + int((done / len(missing)) * 25)
+                jobs[job_id]["progress"] = pct
+                jobs[job_id]["message"]  = f"Fetching fundamentals ({done}/{len(missing)})…"
 
         try:
             cache_file.write_text(json.dumps(cached), encoding="utf-8")
