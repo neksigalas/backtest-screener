@@ -4,7 +4,11 @@ A mean-reversion stock screener and backtester for US equities. Find oversold st
 
 **Live app:** https://web-production-93d1e.up.railway.app/
 
+
 ---
+
+<img width="1374" height="868" alt="screenshot" src="https://github.com/user-attachments/assets/b4c024db-1097-47ba-89e2-b95a813f59f6" />
+
 
 ## Features
 
