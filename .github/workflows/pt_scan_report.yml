@@ -1,0 +1,48 @@
+name: 3BS — Evening Scan & Report
+
+on:
+  schedule:
+    # 20:30 UTC = 23:30 Athens (EEST) — 30 min after NYSE close (20:00 UTC)
+    - cron: '30 20 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan-and-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout (latest main)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run evening scan (buy new positions)
+        run: python -m paper_trader.scan
+
+      - name: Commit updated state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add paper_trader/state.json
+          git diff --staged --quiet || git commit -m "chore: evening scan update [skip ci]"
+          git diff --staged --quiet || git push origin main
+
+      - name: Send daily report email
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          REPORT_TO: ${{ secrets.REPORT_TO }}
+        run: python -m paper_trader.report
