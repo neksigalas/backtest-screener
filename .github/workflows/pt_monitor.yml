@@ -2,9 +2,9 @@ name: 3BS — Hourly Monitor
 
 on:
   schedule:
-    # Every hour 14:00-20:00 UTC (Mon-Fri) = 17:00-23:00 Athens (EEST)
-    # Covers full NYSE session: 13:30-20:00 UTC
-    - cron: '0 14-20 * * 1-5'
+    # Every hour 14:00-18:00 UTC (Mon-Fri) = 17:00-21:00 Athens (EEST)
+    # Stops at 18:00 UTC so it doesn't conflict with the 19:00 UTC scan
+    - cron: '0 14-18 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run monitor
+      - name: Run monitor (check TP/SL)
         run: python -m paper_trader.monitor
 
       - name: Commit state if changed
