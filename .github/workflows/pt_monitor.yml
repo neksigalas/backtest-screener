@@ -1,0 +1,42 @@
+name: 3BS — Hourly Monitor
+
+on:
+  schedule:
+    # Every hour 14:00-18:00 UTC (Mon-Fri) = 17:00-21:00 Athens (EEST)
+    # Stops at 18:00 UTC so it doesn't conflict with the 19:00 UTC scan
+    - cron: '0 14-18 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout (latest main)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor (check TP/SL)
+        run: python -m paper_trader.monitor
+
+      - name: Commit state if changed
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add paper_trader/state.json
+          git diff --staged --quiet || git commit -m "chore: monitor update [skip ci]"
+          git diff --staged --quiet || git push origin main
