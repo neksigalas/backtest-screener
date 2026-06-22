@@ -504,7 +504,7 @@ def build_email(results: list[SimResult]) -> str:
     <div>• Fundamentals (P/E, ROE, net margin, debt/equity, market-cap rank) χρησιμοποιούν τα <strong>σημερινά</strong> δεδομένα, όχι ιστορικά — look-ahead bias για αυτά τα σήματα μόνο.</div>
     <div>• Εκτέλεση στην τιμή κλεισίματος (όχι intraday TP/SL) — ελαφρά δυσμενές για το σύστημα.</div>
     <div>• Paper trading, χωρίς spread/slippage/φόρους. Τα πραγματικά αποτελέσματα θα διαφέρουν.</div>
-    <div>• Κάθε θέση: $100 επένδυση, max 3 θέσεις ανά πάσα στιγμή. TP +5% / SL -10%.</div>
+    <div>• Κάθε θέση: $100 επένδυση, max 3 θέσεις ανά πάσα στιγμή. TP +5% / SL -7%.</div>
   </div>
 
 </div>
@@ -577,7 +577,7 @@ def main():
             threshold     = threshold,
             start_date    = BACKTEST_START,
             take_profit   = 0.05,
-            stop_loss     = 0.10,
+            stop_loss     = 0.07,
         )
         st = calc_stats(res)
         print(f"     Trades: {st['total_trades']}  |  Win rate: {st['win_rate']}%  |  P&L: ${st['total_pnl']:.2f}")
@@ -599,7 +599,7 @@ def main():
 
     today_str = date.today().strftime("%d/%m/%Y")
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"📊 Backtest 3Y TP+5%/SL-10%: {today_str} — {len(results)} Strategies Compared"
+    msg["Subject"] = f"📊 Backtest 3Y TP+5%/SL-7%: {today_str} — {len(results)} Strategies Compared"
     msg["From"]    = gmail_user
     msg["To"]      = to_addr
     msg.attach(MIMEText(html, "html", "utf-8"))
