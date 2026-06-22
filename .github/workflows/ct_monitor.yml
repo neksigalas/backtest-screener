@@ -1,0 +1,43 @@
+name: 3BC — Price Monitor (every 2h, 24/7)
+
+on:
+  schedule:
+    # Every even hour, all day, every day (crypto never closes)
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout (latest main)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run monitor (check TP/SL)
+        run: python -m crypto_trader.monitor
+
+      - name: Commit state if changed
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add crypto_trader/state.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: crypto monitor update [skip ci]"
+            git push origin main
+          fi
