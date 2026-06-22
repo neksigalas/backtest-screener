@@ -3,12 +3,12 @@ Daily report builder and email sender for 3 Best Stocks Paper Trading.
 Generates a rich HTML email with equity curve chart and sends via Gmail SMTP.
 """
 
-import base64
-import io
+import json
 import os
 import smtplib
 import sys
-from datetime import date, datetime
+import urllib.parse
+from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -16,10 +16,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import yfinance as yf
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 from paper_trader.engine import load_state, portfolio_stats, TAKE_PROFIT_PCT, STOP_LOSS_PCT
 
 TITLE = "3 Best Stocks Paper Trading"
@@ -36,52 +32,76 @@ def _current_price(ticker: str) -> float | None:
         return None
 
 
-# ── Equity curve chart ────────────────────────────────────────────────────────
+# ── Equity curve chart (QuickChart.io — works in Gmail) ──────────────────────
 
-def _build_chart(trades: list) -> str:
-    """Build equity curve PNG, return as base64 string."""
-    fig, ax = plt.subplots(figsize=(9, 3.5))
-    fig.patch.set_facecolor("#0f172a")
-    ax.set_facecolor("#1e293b")
+def _build_chart_url(trades: list) -> str:
+    """Build equity curve chart URL via QuickChart.io. Works in all email clients."""
 
     if not trades:
-        ax.text(0.5, 0.5, "No completed trades yet", ha="center", va="center",
-                color="#64748b", fontsize=13, transform=ax.transAxes)
+        config = {
+            "type": "line",
+            "data": {
+                "labels": ["-"],
+                "datasets": [{
+                    "data": [0],
+                    "borderColor": "#475569",
+                    "backgroundColor": "transparent",
+                    "pointRadius": 0,
+                }]
+            },
+            "options": {
+                "plugins": {
+                    "legend": {"display": False},
+                    "title": {
+                        "display": True,
+                        "text": "No completed trades yet",
+                        "color": "#94a3b8",
+                        "font": {"size": 14},
+                    },
+                },
+                "scales": {
+                    "x": {"ticks": {"color": "#94a3b8"}, "grid": {"color": "#334155"}},
+                    "y": {"ticks": {"color": "#94a3b8"}, "grid": {"color": "#334155"}},
+                },
+            },
+        }
     else:
-        # build daily cumulative P&L
         sorted_trades = sorted(trades, key=lambda t: t["exit_date"])
-        dates, cum    = [], []
-        running = 0.0
+        labels, data, running = [], [], 0.0
         for t in sorted_trades:
             running += t["pnl"]
-            dates.append(datetime.strptime(t["exit_date"], "%Y-%m-%d"))
-            cum.append(round(running, 2))
+            labels.append(t["exit_date"])
+            data.append(round(running, 2))
 
         color = "#22c55e" if running >= 0 else "#ef4444"
-        ax.plot(dates, cum, color=color, linewidth=2.5, zorder=3)
-        ax.fill_between(dates, cum, 0, alpha=0.15, color=color)
-        ax.axhline(0, color="#475569", linewidth=1, linestyle="--")
+        config = {
+            "type": "line",
+            "data": {
+                "labels": labels,
+                "datasets": [{
+                    "label": "Cumulative P&L ($)",
+                    "data": data,
+                    "borderColor": color,
+                    "backgroundColor": color + "33",
+                    "fill": True,
+                    "tension": 0.3,
+                    "pointRadius": 4,
+                    "pointBackgroundColor": color,
+                }]
+            },
+            "options": {
+                "plugins": {
+                    "legend": {"labels": {"color": "#94a3b8"}},
+                },
+                "scales": {
+                    "x": {"ticks": {"color": "#94a3b8", "maxTicksLimit": 8}, "grid": {"color": "#334155"}},
+                    "y": {"ticks": {"color": "#94a3b8"}, "grid": {"color": "#334155"}},
+                },
+            },
+        }
 
-        ax.xaxis.set_major_formatter(mdates.DateFormatter("%d/%m"))
-        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
-        plt.xticks(color="#94a3b8", fontsize=9)
-        plt.yticks(color="#94a3b8", fontsize=9)
-
-        for spine in ax.spines.values():
-            spine.set_edgecolor("#334155")
-
-        ax.grid(axis="y", color="#1e293b", linewidth=0.5, alpha=0.5)
-        ax.set_ylabel("Cumulative P&L ($)", color="#94a3b8", fontsize=9)
-
-    ax.set_title("Equity Curve", color="#f1f5f9", fontsize=11, pad=10)
-    plt.tight_layout()
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=130, bbox_inches="tight",
-                facecolor=fig.get_facecolor())
-    plt.close(fig)
-    buf.seek(0)
-    return base64.b64encode(buf.read()).decode()
+    encoded = urllib.parse.quote(json.dumps(config, separators=(",", ":")))
+    return f"https://quickchart.io/chart?c={encoded}&width=800&height=280&backgroundColor=%231e293b"
 
 
 # ── HTML helpers ──────────────────────────────────────────────────────────────
@@ -126,7 +146,7 @@ def build_report(state: dict, today_str: str) -> str:
         pos_with_price.append({**pos, "current_price": price,
                                 "upnl_pct": upnl_pct, "upnl_usd": upnl_usd})
 
-    chart_b64 = _build_chart(trades)
+    chart_url = _build_chart_url(trades)
 
     # ── Today's activity section ──────────────────────────────────────────────
     activity_rows = ""
@@ -262,7 +282,7 @@ def build_report(state: dict, today_str: str) -> str:
   <!-- Equity curve chart -->
   <div style="background:#1e293b;border-radius:12px;padding:20px;margin-bottom:24px;">
     <div style="font-size:14px;font-weight:600;color:#94a3b8;margin-bottom:12px;">📊 Equity Curve — Συνολικό P&L</div>
-    <img src="data:image/png;base64,{chart_b64}"
+    <img src="{chart_url}"
          alt="Equity Curve"
          style="width:100%;max-width:820px;border-radius:8px;display:block;">
   </div>
