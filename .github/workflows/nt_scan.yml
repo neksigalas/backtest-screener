@@ -1,0 +1,43 @@
+name: NT — Evening Scan (22:00 Athens)
+
+on:
+  schedule:
+    # 19:00 UTC = 22:00 Athens (EEST = UTC+3), weekdays
+    - cron: '0 19 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout (latest main)
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run evening scan (reversal + MACD + regime signals)
+        run: python -m new_tactic_trader.scan
+
+      - name: Commit updated state
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add new_tactic_trader/state.json
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: NT evening scan update [skip ci]"
+            git push origin main
+          fi
