@@ -1,4 +1,29 @@
 {
-  "positions": [],
+  "positions": [
+    {
+      "ticker": "T",
+      "entry_price": 22.1,
+      "entry_date": "2026-06-23",
+      "entry_score": 87,
+      "quantity": 4.524887,
+      "cost": 100.0
+    },
+    {
+      "ticker": "APA",
+      "entry_price": 34.2,
+      "entry_date": "2026-06-23",
+      "entry_score": 81,
+      "quantity": 2.923977,
+      "cost": 100.0
+    },
+    {
+      "ticker": "AMGN",
+      "entry_price": 344.72,
+      "entry_date": "2026-06-23",
+      "entry_score": 79,
+      "quantity": 0.290091,
+      "cost": 100.0
+    }
+  ],
   "trades": []
 }
