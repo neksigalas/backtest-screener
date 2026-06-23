@@ -38,5 +38,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name  "github-actions[bot]"
           git add paper_trader/state.json
-          git diff --staged --quiet || git commit -m "chore: evening scan update [skip ci]"
-          git diff --staged --quiet || git push origin main
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: 3BS evening scan update [skip ci]"
+            git pull --rebase origin main
+            git push origin main
+          fi

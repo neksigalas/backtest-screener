@@ -2,8 +2,8 @@ name: 3BE — Evening Scan (22:00 Athens)
 
 on:
   schedule:
-    # 19:00 UTC = 22:00 Athens (EEST = UTC+3), weekdays
-    - cron: '0 19 * * 1-5'
+    # 19:05 UTC = 22:05 Athens (EEST = UTC+3), weekdays
+    - cron: '5 19 * * 1-5'
   workflow_dispatch:
 
 permissions:
@@ -39,5 +39,6 @@ jobs:
           git add etf_trader/state.json
           if ! git diff --staged --quiet; then
             git commit -m "chore: ETF evening scan update [skip ci]"
+            git pull --rebase origin main
             git push origin main
           fi

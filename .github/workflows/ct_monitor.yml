@@ -39,5 +39,6 @@ jobs:
           git add crypto_trader/state.json
           if ! git diff --staged --quiet; then
             git commit -m "chore: crypto monitor update [skip ci]"
+            git pull --rebase origin main
             git push origin main
           fi
