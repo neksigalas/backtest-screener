@@ -1,4 +1,23 @@
 {
-  "positions": [],
+  "positions": [
+    {
+      "ticker": "XAUT-USD",
+      "name": "Tether Gold",
+      "entry_price": 4171.57763672,
+      "entry_date": "2026-06-23",
+      "entry_score": 67,
+      "quantity": 0.02397175,
+      "cost": 100.0
+    },
+    {
+      "ticker": "PAXG-USD",
+      "name": "PAX Gold",
+      "entry_price": 4179.84033203,
+      "entry_date": "2026-06-23",
+      "entry_score": 67,
+      "quantity": 0.02392436,
+      "cost": 100.0
+    }
+  ],
   "trades": []
 }
