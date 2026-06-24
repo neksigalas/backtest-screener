@@ -1,4 +1,14 @@
 {
-  "positions": [],
+  "positions": [
+    {
+      "ticker": "KWEB",
+      "name": "KraneShares CSI China Internet ",
+      "entry_price": 24.49,
+      "entry_date": "2026-06-24",
+      "entry_score": 72,
+      "quantity": 4.083299,
+      "cost": 100.0
+    }
+  ],
   "trades": []
 }
