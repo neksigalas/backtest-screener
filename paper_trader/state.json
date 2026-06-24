@@ -1,4 +1,13 @@
 {
-  "positions": [],
+  "positions": [
+    {
+      "ticker": "ACN",
+      "entry_price": 127.01,
+      "entry_date": "2026-06-24",
+      "entry_score": 76,
+      "quantity": 0.78734,
+      "cost": 100.0
+    }
+  ],
   "trades": []
 }
