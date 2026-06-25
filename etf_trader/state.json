@@ -8,6 +8,24 @@
       "entry_score": 72,
       "quantity": 4.083299,
       "cost": 100.0
+    },
+    {
+      "ticker": "UCO",
+      "name": "ProShares Ultra Bloomberg Crude",
+      "entry_price": 32.69,
+      "entry_date": "2026-06-25",
+      "entry_score": 75,
+      "quantity": 3.059039,
+      "cost": 100.0
+    },
+    {
+      "ticker": "TQQQ",
+      "name": "ProShares UltraPro QQQ",
+      "entry_price": 73.3,
+      "entry_date": "2026-06-25",
+      "entry_score": 71,
+      "quantity": 1.364256,
+      "cost": 100.0
     }
   ],
   "trades": []
