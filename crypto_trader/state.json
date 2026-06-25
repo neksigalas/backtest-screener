@@ -17,6 +17,15 @@
       "entry_score": 67,
       "quantity": 0.02392436,
       "cost": 100.0
+    },
+    {
+      "ticker": "ETH-USD",
+      "name": "Ethereum",
+      "entry_price": 1619.92492676,
+      "entry_date": "2026-06-25",
+      "entry_score": 66,
+      "quantity": 0.06173126,
+      "cost": 100.0
     }
   ],
   "trades": []
